@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-
 import requests
 from flask import Flask, request
 
@@ -17,7 +16,7 @@ def verify():
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
 
-    return "Hello world", 200
+    return "Hello world123", 200
 
 
 @app.route('/', methods=['POST'])
@@ -39,7 +38,7 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
                     
-                    send_message(sender_id, "Thanks For your message, we will get back to you at the earliest")
+                    send_message(sender_id, "Hello.Thanks For your message, we will get back to you at the earliest")
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
