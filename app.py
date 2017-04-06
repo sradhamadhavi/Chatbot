@@ -3,10 +3,15 @@ import sys
 import json
 import requests
 from chatterbot import ChatBot
-from flask import Flask, request
+from flask import Flask, request,jsonify
+import pymysql
 
 app = Flask(__name__)
-
+# chatbot = ChatBot(
+#                     'RChat',
+#                     trainer='chatterbot.trainers.ChatterBotCorpusTrainer'
+#                     )
+# chatbot.train("chatterbot.corpus.english")
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -16,8 +21,25 @@ def verify():
         if not request.args.get("hub.verify_token") == os.environ["VERIFY_TOKEN"]:
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
-
+    
     return "Hello world123", 200
+
+@app.route('/get/<string:prod>',methods=['GET'])
+def get_raw_response(prod):
+    #return str(chatbot.get_response(query))
+    #uri="http://localhost:8080/prod/1234"#+prod_id
+    res=getProductDetails(prod)
+    return (res)
+    
+def getProductDetails(prod_id):
+    conn=pymysql.connect(host='kaushal',user='dbuser',password='Tesco@123',db='productdb')
+    a=conn.cursor()
+    sql='select * from product_details where product_id='+prod_id+' ;'
+    a.execute(sql)
+    countrow=a.execute(sql)
+    print "Number of rows:",countrow
+    data=a.fetchone()
+    return  jsonify(data)
 
 
 @app.route('/', methods=['POST'])
@@ -38,12 +60,9 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]        # the facebook ID of the person sending you the message
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
-                    chatbot = ChatBot("Charlie")
-
-# Get a response to the input "How are you?"
-response = chatbot.get_response("How are you?")
-                    
-                    send_message(sender_id, "Hello.Thanks For your message, we will get back to you at the earliest"+response)
+                    #response = chatbot.get_response(message_text)
+                    response=getProductDetails(message_text)
+                    send_message(sender_id, response)
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
