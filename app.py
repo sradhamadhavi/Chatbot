@@ -60,8 +60,9 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
                     #response = chatbot.get_response(message_text)
-                    response=getProductDetails(message_text)
-                    send_message(sender_id, response)
+                    #response=getProductDetails(message_text)
+                    #send_message(sender_id, response)
+                    send_message(sender_id, "Thanks For your message, we will get back to you at the earliest")
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
