@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import requests
-from chatterbot import ChatBot
+#from chatterbot import ChatBot
 from flask import Flask, request,jsonify
 import pymysql
 
