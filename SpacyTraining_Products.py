@@ -117,7 +117,7 @@ def main(model_dir=None):
 # In[42]:
 
 def predictEnt(query):
-    nlp = spacy.load('en')
+    nlp = spacy.load('en',parser=False)
     doc = nlp.make_doc(query)
     vocab_dir = pathlib.Path('ner/vocab')
     with (vocab_dir / 'strings.json').open('r', encoding='utf8') as file_:
@@ -137,7 +137,7 @@ def predictEnt(query):
 
 
 if __name__ == '__main__':
-    # main('ner')
+    main('ner')
     ent=predictEnt('can I buy a Blanket?')
     print(ent)
     # Who "" 2

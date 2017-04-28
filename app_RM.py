@@ -148,6 +148,7 @@ def webhook():
                         #if(rowCount>0):
                         #send_Textmessage(sender_id,"We have many products that matches your need. Can you choose from below list?")
                         #send_Textmessage(sender_id,getProductDetails(intent,entity))
+                        send_Textmessage(sender_id,intent)
                         send_Textmessage(sender_id,entity)
                     # else:
                     #     send_message(sender_id,getProductDetails(price,message_text))
