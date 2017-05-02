@@ -22,7 +22,7 @@ import string
 from nltk import word_tokenize          
 from nltk.stem.porter import PorterStemmer
 import pandas as pd
-token="EAACVPy7Oy2gBACZArb5mJl2vSZBs6aHvyU0cizbOj0OjAFpxj04Ojbt0CiQqfZBSDudpASEj7tna6iUPkulnt5UNDrXaHkxjQ0yEBZCZA28anKJDvCa2lMj7KdkMZBcvdCIiVcYGMkXWaHplkrp27ESFIpQpnyswZAxMSEZBWvUNcwZDZD"
+token="EAACVPy7Oy2gBAF6HNoT1inoNFuK5DF49umuFLMPGmxjaQf6SiCPVecDKZCRFZAdi7FZAmiiSQXkUpCYkrhat9C23O2TZBUuGxUMU1BzSP37DtlpZAWtD4yhk70n2FHL4ftdgqldDOkWNCV43QNnXjy4j8UxZAZCVfNDxQvZBH5aHIAZDZD"
 url="https://graph.facebook.com/v2.6/me/messages"
 
 #from messengerbot import messenger
@@ -83,9 +83,10 @@ def get_raw_response(prod):
 
 ##################################################################################################################################
 def getProductDetails(sender,productTitle):
+    log(productTitle)
     conn=pymysql.connect(host='localhost',user='root',password='sparity@123',db='productdb')
     cursor=conn.cursor()
-    sql="select  price,size,availability from orgproddetails where title = '"+productTitle+"'"
+    sql="select  description from productdb.orgproddetails where title = '"+productTitle+"'"
     # if intent=='Price':
     #     sql="select  title,price from orgproddetails where title like '%"+entity+"%' LIMIT 5"
     # elif intent=='buy':
@@ -93,8 +94,8 @@ def getProductDetails(sender,productTitle):
     # elif intent=='Availability':
     #     sql="select title,availability from orgproddetails where title like '%"+entity+"%' LIMIT 5"     
     cursor.execute(sql)
-    data=cursor.fetchall()
-    send_Textmessage(data)
+    data=cursor.fetchone()
+    send_Textmessage(sender,data[0])
 
 ##################################################################################################################################
 def getIntent(query):
@@ -123,7 +124,7 @@ def getProductCount(entity):
 def webhook():
    # endpoint for processing incoming messaging events
     data = request.get_json()
-    log(data)  # you may not want to log every incoming message in production, but it's good for testing
+    #log(data)  # you may not want to log every incoming message in production, but it's good for testing
     
     if data["object"] == "page":
         for entry in data["entry"]:
@@ -131,15 +132,19 @@ def webhook():
                 sender_id = messaging_event["sender"]["id"]
                 if messaging_event.get("message"):
                     sender_id = messaging_event["sender"]["id"]
-                    log(messaging_event.get("message"))                    
+                    log("inside message")
+                    #log(messaging_event.get("message"))                    
                     # recipient_id = messaging_event["recipient"]["id"]  # the recipient's ID, which should be your page's facebook ID
                     message_text = messaging_event["message"]["text"]  # the message's text
                     #response = chatbot.get_response(message_text)
                     #response=getProductDetails(message_text)
                     #send_message(sender_id, intent)
-                    if message_text == "Hi":
+                    if message_text.lower() == "hi" or message_text.lower() == "hello":
+                        log(message_text.lower())
                         send_Textmessage(sender_id, "Hello, How can I help you?")
+                        
                     else:
+                        log(message_text.upper())
                         intent=getIntent(message_text)
                         entity=getEntity(message_text)
                         #entity='Boxer'
@@ -148,12 +153,21 @@ def webhook():
                         #if(rowCount>0):
                         #send_Textmessage(sender_id,"We have many products that matches your need. Can you choose from below list?")
                         #send_Textmessage(sender_id,getProductDetails(intent,entity))
-                        send_Textmessage(sender_id,intent)
-                        send_Textmessage(sender_id,entity)
+                        #send_Textmessage(sender_id,intent)
+                        try:
+                            if entity.upper()=='TOPS':
+                                send_Textmessage(sender_id,"We have range of collections in below categories. Please select the one you are intrested in.")
+                                sendGenderForEntity(sender_id,entity.upper())
+                            else:
+                                send_Textmessage(sender_id,"I wish I could help you...")
+                        except:
+                            log(sys.exc_info()[0])
                     # else:
                     #     send_message(sender_id,getProductDetails(price,message_text))
                 elif messaging_event.get("postback"):
                     message_text = messaging_event["postback"]["payload"]
+                    log("inside postback")
+                    
                     if message_text=="START_OVER" or message_text=='MAIN_MENU':
                         sendMainMenu_Gender(sender_id)
                     elif message_text=='MALE':
@@ -162,8 +176,8 @@ def webhook():
                         sendFem_Category(sender_id)
                     elif message_text== 'KIDS':
                         sendKids_Category(sender_id)
-                    elif message_text=='TOPS':
-                        getData(sender_id,'TOPS')
+                    elif message_text=='TOPS_M':
+                        getData(sender_id,'TOPS_M')
                     elif message_text=='TOPS_F':
                         getData(sender_id,'TOPS_F')
                     else:
@@ -251,6 +265,35 @@ def sendMainMenu_Gender(sender):
     }
     send_message(sender,messageData)
 ##################################################################################################################################
+def sendGenderForEntity(sender_id,entity):
+    messageData = "{"
+    messageData= messageData+  "\"attachment\":{"
+    messageData= messageData+    "\"type\":\"template\","
+    messageData= messageData+    "\"payload\":{"
+    messageData= messageData+        "\"template_type\":\"button\","
+    messageData= messageData+        "\"text\":\"Choose Category\","
+    messageData= messageData+        "\"buttons\":["
+    messageData= messageData+            "{"
+    messageData= messageData+            "\"type\":\"postback\","
+    messageData= messageData+            "\"title\":\"Men\","
+    messageData= messageData+            "\"payload\":\""+entity+"_M\""
+    messageData= messageData+        "},"
+    messageData= messageData+        "{"
+    messageData= messageData+            "\"type\":\"postback\","
+    messageData= messageData+            "\"title\":\"Women\","
+    messageData= messageData+            "\"payload\":\""+entity+"_F\""
+    messageData= messageData+        "},"
+    messageData= messageData+        "{"
+    messageData= messageData+            "\"type\":\"postback\","
+    messageData= messageData+            "\"title\":\"Kids\","
+    messageData= messageData+            "\"payload\":\""+entity+"_KIDS\""
+    messageData= messageData+        "}"
+    messageData= messageData+        "]"
+    messageData= messageData+    "}"
+    messageData= messageData+    "}"
+    messageData= messageData+"}"
+    send_message(sender_id,messageData)
+##################################################################################################################################
 def sendMale_Category(sender):
     messageData = {
         "attachment":{
@@ -262,17 +305,17 @@ def sendMale_Category(sender):
                     {
                         "type":"postback",
                         "title":"Tops",
-                        "payload":"TOPS"
+                        "payload":"TOPS_M"
                     },
                     {
                         "type":"postback",
                         "title":"Bottoms",
-                        "payload":"BOTTOMS"
+                        "payload":"BOTTOMS_M"
                     },
                     {
                         "type":"postback",
                         "title":"Lounge + Sleepwear",
-                        "payload":"LOUNGE+SLEEPWEAR"
+                        "payload":"LOUNGE+SLEEPWEAR_M"
                     }
                 ]
             }
@@ -339,12 +382,14 @@ def sendFem_Category(sender):
     send_message(sender,messageData)
 ##################################################################################################################################
 def getData(sender,Category):
-    if Category=='TOPS':
-        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('male','unisex') and title like '%T-Shirt%'limit 10"
+    if Category=='TOPS_M':
+        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('male') and title like '%T-Shirt%'limit 10"
     elif Category=='TOPS_F':
-        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('female','unisex') and title like '%T-Shirt%'limit 10"
-    elif Category=='BOTTOMS':
-        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('female','unisex') and title like '%T-Shirt%'limit 10"
+        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('female') and title like '%T-Shirt%'limit 10"
+    elif Category=='BOTTOMS_F':
+        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('female') and title like '%pant%'limit 10"
+    elif Category=='BOTTOMS_M':
+        dbQuery="SELECT * FROM productdb.orgproddetails where gender in ('male') and title like '%pant%'limit 10"
     
        
     conn=pymysql.connect(host='localhost',user='root',password='sparity@123',db='productdb')
@@ -355,7 +400,7 @@ def getData(sender,Category):
     messageData="{\"attachment\": {\"type\": \"template\",\"payload\": {\"template_type\": \"generic\",\"elements\": [{"
     for row in rows:
         i=i+1
-        messageData+="\"title\": \""+row[2]+"\",\"subtitle\": \""+row[3]+"\",\"image_url\": \""+row[5]
+        messageData+="\"title\": \""+row[2]+"\",\"image_url\": \""+row[5]
         messageData+="\",\"buttons\": [{\"type\": \"web_url\",\"url\": \""+row[4]+"\",\"title\": \"Click here to Buy\""
         messageData+="}, {\"type\": \"postback\",\"title\": \"More Details\",\"payload\": \""+row[2]+"\",}],}"
         if i==cursor.rowcount:
@@ -367,6 +412,24 @@ def getData(sender,Category):
     send_message(sender,messageData)
 	 
 ##################################################################################################################################
+def QuickReply(sender):
+    messageData={
+        "text":"Pick a color:",
+        "quick_replies":
+        [
+            {
+                "content_type":"text",
+                "title":"Red",
+                "payload":"RED"
+            },
+            {
+                "content_type":"text",
+                "title":"Green",
+                "payload":"GREEN"
+            }
+        ]
+    }
+    send_message(sender,messageData)
 ##################################################################################################################################
 ##################################################################################################################################
 if __name__ == '__main__':

@@ -86,7 +86,16 @@ def main(model_dir=None):
         (
             'Do you have a Blanket',
             [(len('Do you have a '), len('Do you have Blanket'), 'PRODUCT')]
-        )
+        ),
+        (
+            'Can you show me some Pants',
+            [(len('Can you show me some '), len('Can you show me some Pants'), 'PRODUCT')]
+        ),
+        (
+            'Show me some tops',
+            [(len('Show me some '), len('Show me some tops'), 'PRODUCT')]
+        ),
+        
     ]
     ner = train_ner(nlp, train_data, ['PRODUCT'])
 
@@ -138,7 +147,7 @@ def predictEnt(query):
 
 if __name__ == '__main__':
     main('ner')
-    ent=predictEnt('can I buy a Blanket?')
+    ent=predictEnt('Do you have blankets')
     print(ent)
     # Who "" 2
     # is "" 2
